@@ -1,9 +1,10 @@
 import logging
-import random
 import os
+import asyncio
+import json
 from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.middlewares.logging import LoggingMiddleware
-from aiogram.utils import executor
+from aiogram.filters import Command
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -16,27 +17,48 @@ logging.basicConfig(level=logging.INFO)
 
 # Initialize bot and dispatcher
 bot = Bot(token=API_TOKEN)
-dp = Dispatcher(bot)
-dp.middleware.setup(LoggingMiddleware())
+dp = Dispatcher()
 
-@dp.message_handler(commands=['start', 'help'])
+def load_reply(file_name):
+    with open(file_name, 'r', encoding='utf-8') as file:
+        return file.read()
+
+def load_keyboard(file_name):
+    with open(file_name, 'r', encoding='utf-8') as file:
+        buttons = json.load(file)
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text=button["text"], callback_data=button["callback_data"])]
+            for button in buttons
+        ])
+        return keyboard
+
+@dp.message(Command("start"))
 async def send_welcome(message: types.Message):
-    await message.reply("Hi!\nI'm your friendly Telegram bot!\nUse /info to get more information.")
+    start_reply = load_reply('Replies/start_reply.txt')
+    keyboard = load_keyboard('Keyboards/start_keyboard.json')
+    await message.reply(start_reply, reply_markup=keyboard)
 
-@dp.message_handler(commands=['info'])
+@dp.message(Command("help"))
+async def send_help(message: types.Message):
+    help_reply = load_reply('Replies/help_reply.txt')
+    await message.reply(help_reply)
+
+@dp.message(Command("info"))
 async def send_info(message: types.Message):
-    await message.reply("This bot is created using aiogram library. It can respond to /start, /help, and /info commands.")
+    info_reply = load_reply('Replies/info_reply.txt')
+    await message.reply(info_reply)
 
-@dp.message_handler(commands=['evaluate'])
-async def evaluate_behavior(message: types.Message):
-    user_behavior = evaluate_user_behavior()
-    if user_behavior == "good":
-        await message.reply("Comrade, you are behaving excellently! Request to issue Koshka Jena has been submitted.")
+@dp.callback_query(lambda c: c.data in ["yes", "no"])
+async def process_callback(callback_query: types.CallbackQuery):
+    if callback_query.data == "yes":
+        response = load_reply('Replies/yes_callback.txt')
     else:
-        await message.reply("Comrade, you need to improve your behavior to be a good party member.")
+        response = load_reply('Replies/no_callback.txt')
+    await callback_query.message.answer(response)
+    await callback_query.answer()
 
-def evaluate_user_behavior():
-    return random.choice(["good", "bad"])
+async def main():
+    await dp.start_polling(bot)
 
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+    asyncio.run(main())

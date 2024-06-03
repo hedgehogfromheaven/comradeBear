@@ -1,0 +1,4 @@
+[
+    {"text": "YES", "callback_data": "yes"},
+    {"text": "NO", "callback_data": "no"}
+]
