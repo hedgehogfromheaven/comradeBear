@@ -36,7 +36,6 @@ async def evaluate_behavior(message: types.Message):
         await message.reply("Comrade, you need to improve your behavior to be a good party member.")
 
 def evaluate_user_behavior():
-    # Simple random evaluation for demonstration
     return random.choice(["good", "bad"])
 
 if __name__ == '__main__':
