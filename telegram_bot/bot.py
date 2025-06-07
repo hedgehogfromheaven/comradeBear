@@ -6,6 +6,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from dotenv import load_dotenv
+import random
 
 # Load environment variables from .env file
 load_dotenv()
@@ -47,6 +48,21 @@ async def send_help(message: types.Message):
 async def send_info(message: types.Message):
     info_reply = load_reply('Replies/info_reply.txt')
     await message.reply(info_reply)
+
+@dp.message(Command("evaluate"))
+async def evaluate_behavior(message: types.Message):
+    user_behavior = evaluate_user_behavior()
+    if user_behavior == "good":
+        await message.reply(
+            "Comrade, you are behaving excellently! Request to issue Koshka Jena has been submitted."
+        )
+    else:
+        await message.reply(
+            "Comrade, you need to improve your behavior to be a good party member."
+        )
+
+def evaluate_user_behavior():
+    return random.choice(["good", "bad"])
 
 @dp.callback_query(lambda c: c.data in ["yes", "no"])
 async def process_callback(callback_query: types.CallbackQuery):
