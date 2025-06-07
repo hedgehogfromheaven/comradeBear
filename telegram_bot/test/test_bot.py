@@ -1,7 +1,18 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from aiogram import types
-from bot import dp, evaluate_user_behavior, send_welcome, send_info, evaluate_behavior
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from telegram_bot.bot import (
+    dp,
+    evaluate_user_behavior,
+    send_welcome,
+    send_info,
+    evaluate_behavior,
+)
 
 class TestBot(unittest.TestCase):
 
@@ -25,3 +36,4 @@ class TestBot(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
